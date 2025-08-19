@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('after_value')->nullable();
             $table->text('reason')->nullable();
             $table->timestamp('requested_at')->nullable();
-            $table->string('status', 20)->default('pending');
+            $table->string('status', 20)->default('normal')->comment('申請ステータス');
             $table->foreignId('approver_id')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
         });

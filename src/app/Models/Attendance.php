@@ -22,12 +22,11 @@ class Attendance extends Model
         'break_start_time',
     ];
 
-    public const STATUS_NORMAL = 'normal';
-    public const STATUS_CORRECTED = 'corrected';
-
-    public const STATUSES = [
-        self::STATUS_NORMAL,
-        self::STATUS_CORRECTED,
+    protected $casts = [
+        'work_date'        => 'date',
+        'clock_in'         => 'datetime:H:i:s',
+        'clock_out'        => 'datetime:H:i:s',
+        'break_start_time' => 'datetime:H:i:s',
     ];
 
     public function user(): BelongsTo
@@ -39,16 +38,19 @@ class Attendance extends Model
     {
         return $this->hasMany(CorrectionRequest::class);
     }
-    // Attendanceモデルに追記例
+
+
     public function getClockInFormattedAttribute()
     {
-        return $this->clock_in ? \Carbon\Carbon::parse($this->clock_in)->format('H:i') : '-';
+        return $this->clock_in ? $this->clock_in->format('H:i') : '';
     }
+
 
     public function getClockOutFormattedAttribute()
     {
-        return $this->clock_out ? \Carbon\Carbon::parse($this->clock_out)->format('H:i') : '-';
+        return $this->clock_out ? $this->clock_out->format('H:i') : '';
     }
+
 
     public function getBreakFormattedAttribute()
     {
@@ -56,20 +58,26 @@ class Attendance extends Model
         return sprintf('%d:%02d', intdiv($breakMin, 60), $breakMin % 60);
     }
 
+
     public function getTotalFormattedAttribute()
     {
         if ($this->clock_in && $this->clock_out) {
-            $clockIn  = \Carbon\Carbon::parse($this->clock_in);
-            $clockOut = \Carbon\Carbon::parse($this->clock_out);
-            $totalMin = $clockOut->diffInMinutes($clockIn) - ($this->break_time ?? 0);
+            $totalMin = $this->clock_out->diffInMinutes($this->clock_in) - ($this->break_time ?? 0);
             return sprintf('%d:%02d', intdiv($totalMin, 60), $totalMin % 60);
         }
-        return '-';
+        return '';
     }
+
 
     public function getWeekdayJpAttribute()
     {
         $weekArray = ['日', '月', '火', '水', '木', '金', '土'];
-        return $weekArray[\Carbon\Carbon::parse($this->work_date)->dayOfWeek];
+        return $weekArray[$this->work_date->dayOfWeek];
+    }
+
+    public function getIsEditableAttribute(): bool
+    {
+        $latestRequest = $this->correctionRequests()->latest()->first();
+        return !$latestRequest || !$latestRequest->is_pending;
     }
 }

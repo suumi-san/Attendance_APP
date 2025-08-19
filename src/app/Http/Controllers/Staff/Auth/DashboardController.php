@@ -24,8 +24,6 @@ class DashboardController extends Controller
         if (!$user->last_login_at) {
             $user->last_login_at = now();
             $user->save();
-            // 初回ログインでもこのページに残す場合はリダイレクト不要
-            // もし別ページに飛ばしたいならここで redirect()->route('attendance') など
         }
 
         Carbon::setLocale('ja');
@@ -36,11 +34,11 @@ class DashboardController extends Controller
 
         // 状態判定
         if (!$attendance) {
-            $status = 'before_work'; // 出勤前
+            $status = 'before_work';
         } elseif (!$attendance->clock_out) {
             $status = $attendance->break_time_flag ? 'on_break' : 'working';
         } else {
-            $status = 'after_work'; // 退勤後
+            $status = 'after_work';
         }
 
         return view('staff.attendance', compact('status'));
@@ -65,7 +63,6 @@ class DashboardController extends Controller
     {
         $attendance = $this->getTodayAttendance();
 
-        // 休憩中に退勤する場合は休憩時間を加算
         if ($attendance->break_time_flag && $attendance->break_start_time) {
             $attendance->break_time += $this->calculateBreakMinutes($attendance->break_start_time);
         }

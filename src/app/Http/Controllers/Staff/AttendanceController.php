@@ -21,7 +21,9 @@ class AttendanceController extends Controller
         $attendances = Attendance::where('user_id', $user->id)
             ->whereBetween('work_date', [$firstDay->format('Y-m-d'), $lastDay->format('Y-m-d')])
             ->get()
-            ->keyBy('work_date');
+            ->keyBy(function ($item) {
+                return $item->work_date->format('Y-m-d');
+            });
 
         $prevMonth = $firstDay->copy()->subMonth()->format('Y-m');
         $nextMonth = $firstDay->copy()->addMonth()->format('Y-m');
@@ -40,5 +42,28 @@ class AttendanceController extends Controller
     {
         $attendance = Attendance::findOrFail($id);
         return view('staff.detail', compact('attendance'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $attendance = Attendance::findOrFail($id);
+
+        if (!$attendance->is_editable) {
+            return redirect()->back()->with('error', '承認待ちのため修正できません');
+        }
+
+        $attendance->clock_in    = $request->input('clock_in');
+        $attendance->clock_out   = $request->input('clock_out');
+        $attendance->break_start = $request->input('break_start');
+        $attendance->break_end   = $request->input('break_end');
+        $attendance->break2_start = $request->input('break2_start');
+        $attendance->break2_end   = $request->input('break2_end');
+        $attendance->note = $request->input('note');
+        $attendance->status = 'pending';
+
+        $attendance->save();
+
+        return redirect()->route('attendance.detail', ['id' => $attendance->id])
+            ->with('status', '更新しました。承認待ちです');
     }
 }

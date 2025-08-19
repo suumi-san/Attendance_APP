@@ -80,4 +80,5 @@ Route::middleware(['auth:web', 'verified'])->group(function () {
     Route::post('/attendance/break-end', [StaffDashboardController::class, 'endBreak'])->name('attendance.break_end');
     Route::get('/attendance/list', [StaffAttendanceController::class, 'index'])->name('attendance.list');
     Route::get('/attendance/detail/{id}', [StaffAttendanceController::class, 'show'])->name('attendance.detail');
+    Route::post('/attendance/detail/{id}/update', [StaffAttendanceController::class, 'update'])->name('attendance.detail.update');
 });
