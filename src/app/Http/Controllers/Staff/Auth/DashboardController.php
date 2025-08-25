@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Models\Attendance;
-
+use App\Models\BreakTime;
 
 class DashboardController extends Controller
 {
@@ -32,11 +32,11 @@ class DashboardController extends Controller
             ->whereDate('work_date', $today)
             ->first();
 
-        // 状態判定
         if (!$attendance) {
             $status = 'before_work';
         } elseif (!$attendance->clock_out) {
-            $status = $attendance->break_time_flag ? 'on_break' : 'working';
+            $lastBreak = $attendance->breaks()->latest()->first();
+            $status = ($lastBreak && !$lastBreak->break_end) ? 'on_break' : 'working';
         } else {
             $status = 'after_work';
         }
@@ -46,14 +46,11 @@ class DashboardController extends Controller
 
     public function startWork()
     {
-        Attendance::create([
+        $attendance = Attendance::create([
             'user_id' => Auth::id(),
-            'work_date' => Carbon::today(),
-            'clock_in' => Carbon::now()->format('H:i:s'),
+            'work_date' => now()->toDateString(),
+            'clock_in' => now()->format('H:i:s'),
             'break_time' => 0,
-            'note' => null,
-            'break_time_flag' => false,
-            'break_start_time' => null,
         ]);
 
         return redirect()->route('attendance');
@@ -79,9 +76,12 @@ class DashboardController extends Controller
     public function startBreak()
     {
         $attendance = $this->getTodayAttendance();
-        $attendance->update([
-            'break_start_time' => Carbon::now()->format('H:i:s'),
-            'break_time_flag' => true,
+
+        // 新しい休憩レコードを作成
+        $attendance->breaks()->create([
+            'break_start' => now(),
+            'break_end' => null,
+            'duration_minutes' => 0,
         ]);
 
         return redirect()->route('attendance');
@@ -91,15 +91,15 @@ class DashboardController extends Controller
     {
         $attendance = $this->getTodayAttendance();
 
-        if ($attendance->break_start_time) {
-            $attendance->break_time += $this->calculateBreakMinutes($attendance->break_start_time);
+        // 最新の休憩レコードを取得
+        $break = $attendance->breaks()->latest()->first();
+
+        if ($break && !$break->break_end) {
+            $break->update([
+                'break_end' => now(),
+                'duration_minutes' => now()->diffInMinutes($break->break_start),
+            ]);
         }
-
-        $attendance->update([
-            'break_start_time' => null,
-            'break_time_flag' => false,
-        ]);
-
         return redirect()->route('attendance');
     }
 

@@ -8,6 +8,7 @@ body {
     align-items: center;
     justify-content: center;
     margin-top: 50px;
+    margin-bottom: 100px;
 }
 
 .detail-title {
@@ -37,7 +38,7 @@ body {
 
 .detail-table th,
 .detail-table td {
-    height: 92px;
+    height: 100px;
     vertical-align: middle;
 }
 
@@ -62,11 +63,34 @@ body {
     border-bottom: solid 2px #E1E1E1;
 }
 
-.input {
+.field-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 316px;
+}
+
+.time-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 316px;
+}
+
+.input  {
     width: 103px;
     height: 29px;
     border: #E1E1E1 solid 1px;
     border-radius: 4px;
+}
+
+.time-text {
+    text-align: center;
+    font-family: Inter;
+    font-size: 16px;
+    color: #000;
+    letter-spacing: 2.4px;
+    font-weight: bold;
 }
 
 .textarea {
@@ -75,6 +99,12 @@ body {
     height: 72px;
     border: #D9D9D9 solid 1px;
     border-radius: 4px;
+
+    color: #000;
+    font-family: Inter;
+    font-size: 16px;
+    letter-spacing: 2.4px;
+    font-weight: bold;
 }
 
 .attendance-table tbody tr:last-child td {
@@ -83,8 +113,19 @@ body {
 
 .button-wrapper {
     display: flex;
-    justify-content: right;
+    justify-content:flex-end;
+    align-items: center;
     margin-top: 20px;
+}
+
+.button-wrapper p {
+    color: red;
+    font-family: Inter;
+    font-size: 16px;
+    letter-spacing: 2.4px;
+
+    width: 60vw;
+    text-align: right;
 }
 
 .btn-primary {

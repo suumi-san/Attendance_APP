@@ -66,4 +66,14 @@ class CorrectionRequest extends Model
     {
         return $this->status === self::STATUS_CORRECTED;
     }
+
+    public function getStatusLabelAttribute()
+    {
+        return match ($this->status) {
+            'pending'  => '承認待ち',
+            'approved' => '承認済み',
+            'rejected' => '否認',
+            default    => '不明',
+        };
+    }
 }

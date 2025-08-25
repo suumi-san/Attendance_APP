@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\BreakTime;
 
 class Attendance extends Model
 {
@@ -18,15 +19,12 @@ class Attendance extends Model
         'clock_out',
         'break_time',
         'note',
-        'break_time_flag',
-        'break_start_time',
     ];
 
     protected $casts = [
         'work_date'        => 'date',
         'clock_in'         => 'datetime:H:i:s',
         'clock_out'        => 'datetime:H:i:s',
-        'break_start_time' => 'datetime:H:i:s',
     ];
 
     public function user(): BelongsTo
@@ -39,6 +37,16 @@ class Attendance extends Model
         return $this->hasMany(CorrectionRequest::class);
     }
 
+    public function breaks(): HasMany
+    {
+        return $this->hasMany(BreakTime::class);
+    }
+
+    public function updateBreakTotal(): void
+    {
+        $total = $this->breaks()->sum('duration_minutes');
+        $this->update(['break_time' => $total]);
+    }
 
     public function getClockInFormattedAttribute()
     {
@@ -68,6 +76,12 @@ class Attendance extends Model
         return '';
     }
 
+    public function getBreakTotalHmAttribute()
+    {
+        $hours = intdiv($this->break_time, 60);
+        $minutes = $this->break_time % 60;
+        return sprintf('%d:%02d', $hours, $minutes);
+    }
 
     public function getWeekdayJpAttribute()
     {
